@@ -1,0 +1,11 @@
+{
+ "SimpleRNN": {
+  "bleu1": 0.058661,
+  "rouge_l": 0.061536
+ },
+ "LSTM": {
+  "bleu1": 0.073615,
+  "rouge_l": 0.077876
+ },
+ "source": "NLP2.ipynb cells 51-53 (test set, 1,000 articles, greedy decoding)"
+}
