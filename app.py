@@ -5,7 +5,6 @@ Team: Ali Omar, Shaza Abdulnasser, Zizi Mostafa - Badr University in Assiut.
 """
 from __future__ import annotations
 
-import html
 import json
 from pathlib import Path
 
@@ -14,18 +13,14 @@ import pandas as pd
 import streamlit as st
 
 from src.inference import HeadlineGenerator
+from src.ui import CSS, INK, LSTM_COLOR, RNN_COLOR, headline_row, tag
 
 ROOT = Path(__file__).parent
-RNN_COLOR, LSTM_COLOR = "#EB6834", "#2A78D6"
-MODEL_COLORS = {"SimpleRNN": RNN_COLOR, "LSTM": LSTM_COLOR}
-
-st.set_page_config(page_title="Arabic Headline Generator", page_icon="📰", layout="centered")
-st.markdown(
-    "<style>.ar{direction:rtl;text-align:right;font-size:1.25rem;line-height:1.8;}</style>",
-    unsafe_allow_html=True,
-)
+st.set_page_config(page_title="Arabic Headline Generator", page_icon="📰", layout="wide")
+st.markdown(CSS, unsafe_allow_html=True)
 
 
+# ---------------------------------------------------------------- data ----------
 @st.cache_data
 def load_json(name: str):
     with open(ROOT / "data" / name, encoding="utf-8") as f:
@@ -39,35 +34,73 @@ def load_generators():
 
 METRICS = load_json("metrics.json")
 HISTORY = load_json("training_history.json")
+MODEL_COLORS = {"SimpleRNN": RNN_COLOR, "LSTM": LSTM_COLOR}
 
-st.title("Arabic headline generator")
-st.write("Paste an Arabic news article and two models, a SimpleRNN and an LSTM, each write a headline.")
+# ---------------------------------------------------------------- hero ----------
+st.markdown(
+    f"""
+<div class="hero">
+  <div>
+    <h1>Arabic headline generator</h1>
+    <p>Paste an Arabic financial news article and the model writes a headline.
+       Two sequence-to-sequence networks, a SimpleRNN and an LSTM, were trained on
+       5,000 articles from AraFinNews and are compared side by side.</p>
+    <div class="meta">Badr University in Assiut · School of Artificial Intelligence &amp; Data Management</div>
+  </div>
+  <div class="wire" aria-label="Test-set scores">
+    <div class="row">{tag("SimpleRNN", RNN_COLOR)}<div class="stat">BLEU-1 {METRICS["SimpleRNN"]["bleu1"]:.4f} · ROUGE-L {METRICS["SimpleRNN"]["rouge_l"]:.4f}</div></div>
+    <div class="row">{tag("LSTM", LSTM_COLOR)}<div class="stat">BLEU-1 {METRICS["LSTM"]["bleu1"]:.4f} · ROUGE-L {METRICS["LSTM"]["rouge_l"]:.4f}</div></div>
+    <div class="row"><div class="stat sm">Scores on 1,000 unseen test articles</div></div>
+  </div>
+</div>
+""",
+    unsafe_allow_html=True,
+)
 
 tab_gen, tab_res, tab_how, tab_lim = st.tabs(["Generate", "Results", "How it works", "Limits"])
 
 # ------------------------------------------------------------ generate ----------
 with tab_gen:
-    text = st.text_area("Article", height=260, placeholder="الصق نص الخبر هنا...")
-    avoid = st.checkbox(
-        "Block repeated words",
-        help="Not part of the notebook. Greedy decoding often loops; this forbids using a word twice in one headline.",
-    )
-    if st.button("Generate headline", type="primary", disabled=not text.strip()):
-        gens = load_generators()
-        for name, key in (("SimpleRNN", "rnn"), ("LSTM", "lstm")):
-            st.subheader(name)
-            out = gens[key].generate(text, avoid_repeats=avoid)
-            st.markdown(f'<div class="ar">{html.escape(out) if out else "—"}</div>', unsafe_allow_html=True)
+    left, right = st.columns([1.15, 1], gap="large")
+
+    with left:
+        st.markdown("#### Article")
+        text = st.text_area("Arabic article", height=300, placeholder="الصق نص الخبر هنا...",
+                            label_visibility="collapsed")
+        avoid = st.checkbox(
+            "Block repeated words",
+            help="Not part of the notebook. Greedy decoding often loops (e.g. 'ارتفاع في ارتفاع'); "
+                 "this option forbids using a word twice in one headline.",
+        )
+        go = st.button("Generate headline", type="primary", disabled=not text.strip())
+
+    with right:
+        st.markdown("#### Headlines")
+        if go and text.strip():
+            gens = load_generators()
+            rows = (headline_row("SimpleRNN", RNN_COLOR, gens["rnn"].generate(text, avoid_repeats=avoid))
+                    + headline_row("LSTM", LSTM_COLOR, gens["lstm"].generate(text, avoid_repeats=avoid)))
+            st.markdown(f'<div class="wire">{rows}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div class="note">Paste an article, then select <b>Generate headline</b>.</div>',
+                        unsafe_allow_html=True)
 
 # ------------------------------------------------------------- results ----------
 with tab_res:
     st.markdown("#### Test-set scores")
     st.caption("1,000 held-out articles, greedy decoding. Higher is better; a perfect score is 1.0.")
     c = st.columns(4)
-    for col, (model, label, key) in zip(c, [("SimpleRNN", "BLEU-1", "bleu1"), ("LSTM", "BLEU-1", "bleu1"),
-                                           ("SimpleRNN", "ROUGE-L", "rouge_l"), ("LSTM", "ROUGE-L", "rouge_l")]):
-        col.metric(f"{model} {label}", f"{METRICS[model][key]:.4f}")
+    kpis = [("SimpleRNN", "BLEU-1", "bleu1"), ("LSTM", "BLEU-1", "bleu1"),
+            ("SimpleRNN", "ROUGE-L", "rouge_l"), ("LSTM", "ROUGE-L", "rouge_l")]
+    for col, (model, label, key) in zip(c, kpis):
+        cls = "accent-rnn" if model == "SimpleRNN" else "accent-lstm"
+        col.markdown(
+            f'<div class="card {cls}">{tag(model, MODEL_COLORS[model])}'
+            f'<div class="kpi">{METRICS[model][key]:.4f}<small>{label}</small></div></div>',
+            unsafe_allow_html=True,
+        )
 
+    st.markdown('<div style="height:.4rem"></div>', unsafe_allow_html=True)
     score_df = pd.DataFrame(
         [{"Model": m, "Metric": lbl, "Score": METRICS[m][k]}
          for m in ("SimpleRNN", "LSTM") for lbl, k in (("BLEU-1", "bleu1"), ("ROUGE-L", "rouge_l"))]
@@ -81,16 +114,17 @@ with tab_res:
         tooltip=["Model", "Metric", alt.Tooltip("Score:Q", format=".4f")],
     )
     bars = base.mark_bar(size=46, cornerRadiusEnd=4)
-    labels = base.mark_text(dy=-8, fontSize=12, color="#31333F").encode(text=alt.Text("Score:Q", format=".3f"))
+    labels = base.mark_text(dy=-8, fontSize=12, color=INK).encode(text=alt.Text("Score:Q", format=".3f"))
     st.altair_chart((bars + labels).properties(height=260, title="Overlap with the reference headline"),
                     width="stretch")
 
     lstm_gain_b = METRICS["LSTM"]["bleu1"] / METRICS["SimpleRNN"]["bleu1"] - 1
     lstm_gain_r = METRICS["LSTM"]["rouge_l"] / METRICS["SimpleRNN"]["rouge_l"] - 1
-    st.info(
-        f"LSTM scores {lstm_gain_b:.0%} higher on BLEU-1 and {lstm_gain_r:.0%} higher on "
+    st.markdown(
+        f'<div class="note">LSTM scores {lstm_gain_b:.0%} higher on BLEU-1 and {lstm_gain_r:.0%} higher on '
         f"ROUGE-L, but both models stay below 0.08. It is a single training run on 1,000 test articles, "
-        f"so treat the gap as indicative, not proven."
+        f"so treat the gap as indicative, not proven.</div>",
+        unsafe_allow_html=True,
     )
 
     st.markdown("#### Training curves")
@@ -126,12 +160,17 @@ with tab_res:
 with tab_how:
     st.markdown("#### Pipeline")
     st.markdown(
-        "1. **Load**: AraFinNews article and headline pairs from Hugging Face\n"
-        "2. **Clean**: strip HTML and URLs, remove diacritics, unify alef forms\n"
-        "3. **Sample**: 5,000 train, 1,000 validation, 1,000 test; no article shared between splits\n"
-        "4. **Encode**: whitespace tokens to ids; article cut to 80, headline to 20\n"
-        "5. **Train**: encoder-decoder with teacher forcing, 20 epochs\n"
-        "6. **Generate**: greedy decoding until [EOS] or 19 words"
+        """
+<div class="pipe">
+  <div><b>Load</b><span>AraFinNews article and headline pairs from Hugging Face</span></div>
+  <div><b>Clean</b><span>Strip HTML and URLs, remove diacritics, unify alef forms</span></div>
+  <div><b>Sample</b><span>5,000 train, 1,000 validation, 1,000 test; no article shared between splits</span></div>
+  <div><b>Encode</b><span>Whitespace tokens to ids; article cut to 80, headline to 20</span></div>
+  <div><b>Train</b><span>Encoder-decoder with teacher forcing, 20 epochs</span></div>
+  <div><b>Generate</b><span>Greedy decoding until [EOS] or 19 words</span></div>
+</div>
+""",
+        unsafe_allow_html=True,
     )
     a, b = st.columns(2, gap="large")
     with a:
@@ -162,11 +201,12 @@ with tab_how:
 # --------------------------------------------------------------- limits ----------
 with tab_lim:
     st.markdown("#### What the results tell us")
-    st.info(
-        "The headlines are fluent-looking Arabic, but they usually do not describe the article. "
+    st.markdown(
+        '<div class="note">The headlines are fluent-looking Arabic, but they usually do not describe the article. '
         "The same phrases (“US stocks rise”, “China intends to…”) come back for unrelated inputs, so the models "
         "learned which headline words are common, not how to summarise. On the ten recorded test articles every LSTM "
-        "headline opens with either “ارتفاع” or “وكالة: الصين تعتزم”."
+        "headline opens with either “ارتفاع” or “وكالة: الصين تعتزم”.</div>",
+        unsafe_allow_html=True,
     )
     st.markdown(
         """
@@ -188,4 +228,8 @@ with tab_lim:
 """
     )
 
-st.caption("Team: Ali Omar, Shaza Abdulnasser, Zizi Mostafa · Badr University in Assiut · Dataset: AraFinNews")
+st.markdown(
+    '<div class="foot"><b>Team</b> · Ali Omar · Shaza Abdulnasser · Zizi Mostafa<br>'
+    "Dataset: AraFinNews (drelhaj/AraFinNews on Hugging Face). Source code, report and notebook are in the GitHub repository.</div>",
+    unsafe_allow_html=True,
+)

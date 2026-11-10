@@ -34,14 +34,15 @@ The trained weights are included in `artifacts/`, so **live generation works out
 ├── app.py                      Streamlit app
 ├── src/
 │   ├── preprocessing.py        Arabic cleaning + tokenisation (copied from the notebook)
-│   └── inference.py            Pure-NumPy SimpleRNN/LSTM encoder-decoder, greedy decoding
+│   ├── inference.py            Pure-NumPy SimpleRNN/LSTM encoder-decoder, greedy decoding
+│   └── ui.py                   Theme and HTML helpers
 ├── data/                       Results recorded from the notebook (metrics, curves, 10 test examples)
 ├── artifacts/                  Trained weights (float16) + vocabulary
 ├── notebooks/NLP2.ipynb        The original, unmodified training notebook
 ├── scripts/                    Export of re-trained models for the app
 ├── tests/                      Checks that the NumPy code matches Keras exactly
 ├── docs/                       Report (PDF/DOCX), notebook guide, deployment guide
-└── .streamlit/config.toml      Server settings
+└── .streamlit/config.toml      Theme and server settings
 ```
 
 ## Run locally
