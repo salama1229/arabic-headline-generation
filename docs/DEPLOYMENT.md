@@ -48,6 +48,8 @@ Prerequisites: the repository is on GitHub and public, and your GitHub account i
 4. Select **Deploy**. The first start installs `requirements.txt` (about a minute).
 5. Optional: choose a custom sub-domain in the app settings, then add the URL to the top of `README.md`.
 
+**This project's deployment:** https://arabic-headline-generation.streamlit.app/ (repository `salama1229/arabic-headline-generation`, branch `main`, main file `app.py`). Every push to `main` redeploys it automatically.
+
 Pre-filled form link (replace the user name if needed):
 `https://share.streamlit.io/deploy?repository=salama1229/arabic-headline-generation&branch=main&mainModule=app.py`
 

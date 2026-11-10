@@ -6,6 +6,8 @@ Generate a headline for an Arabic financial news article with two sequence-to-se
 
 **Live app:** https://arabic-headline-generation.streamlit.app/
 
+![The app: paste an article, get a headline from each model](assets/app.png)
+
 ## Results
 
 Test set of 1,000 unseen articles, greedy decoding (from `notebooks/NLP2.ipynb`):
