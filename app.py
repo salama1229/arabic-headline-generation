@@ -72,7 +72,7 @@ with tab_gen:
         if LIVE:
             st.markdown("#### Article")
             options = ["Write my own"] + [f"Test article {s['id'] + 1}" for s in SAMPLES]
-            choice = st.selectbox("Start from", options, label_visibility="collapsed")
+            choice = st.selectbox("Start from", options, index=1, label_visibility="collapsed")
             sample = None if choice == options[0] else SAMPLES[options.index(choice) - 1]
             text = st.text_area(
                 "Arabic article", value=sample["article"] if sample else "", height=260,
@@ -84,7 +84,7 @@ with tab_gen:
                 help="Not part of the notebook. Greedy decoding often loops (e.g. 'ارتفاع في ارتفاع'); "
                      "this option forbids using a word twice in one headline.",
             )
-            go = st.button("Generate headline", type="primary", disabled=not text.strip())
+            go = st.button("Generate headline", type="primary", disabled=not text.strip()) or (sample is not None and bool(text.strip()))
         else:
             st.markdown("#### Pick a test article")
             idx = st.selectbox(
@@ -114,7 +114,7 @@ with tab_gen:
             if not LIVE:
                 st.markdown(
                     '<div class="note" style="margin-top:.9rem">Live generation is switched off because the '
-                    'trained weights are not in <code>artifacts/</code> yet. These headlines are the outputs '
+                    'trained weights are not in <code>artifacts/</code>. These headlines are the outputs '
                     'recorded in the notebook for the same test articles. '
                     'See <b>docs/DEPLOYMENT.md</b> to enable the live mode.</div>',
                     unsafe_allow_html=True,

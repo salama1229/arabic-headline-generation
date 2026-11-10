@@ -29,7 +29,7 @@ The LSTM overlaps more with the reference headlines (about +25% BLEU-1, +27% ROU
 | **How it works** | Pipeline, architecture, training settings, metric definitions. |
 | **Limits** | What the models get wrong and what to try next. |
 
-Live generation needs the trained weights in `artifacts/` (see [Enable live generation](#enable-live-generation)). Without them the app still runs and shows the headlines recorded in the notebook.
+The trained weights are included in `artifacts/`, so **live generation works out of the box**: paste any Arabic article and both models write a headline. If the weights are ever missing, the app falls back to the headlines recorded in the notebook.
 
 ## Repository structure
 
@@ -40,9 +40,9 @@ Live generation needs the trained weights in `artifacts/` (see [Enable live gene
 │   ├── inference.py            Pure-NumPy SimpleRNN/LSTM encoder-decoder, greedy decoding
 │   └── ui.py                   Theme and HTML helpers
 ├── data/                       Results recorded from the notebook (metrics, curves, 10 examples)
-├── artifacts/                  Trained weights + vocabulary (add after running the notebook)
+├── artifacts/                  Trained weights (float16) + vocabulary
 ├── notebooks/NLP2.ipynb        The original, unmodified training notebook
-├── scripts/                    Export of trained models for the app
+├── scripts/                    Export of re-trained models for the app
 ├── tests/                      Checks that the NumPy code matches Keras exactly
 ├── docs/                       Report (PDF/DOCX), notebook guide, deployment guide
 └── .streamlit/config.toml      Theme
@@ -58,15 +58,11 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## Enable live generation
+## Trained weights
 
-The notebook does not save its models, so export them once from the Colab session that trained them. The notebook itself stays unchanged.
+`artifacts/` holds the weights of the 20-epoch, dropout-0.1 runs reported above (`rnn_weights.npz`, `lstm_weights.npz`, about 60 MB each in float16) and the 92,121-word vocabulary (`vocab.json`). Checked against the notebook: for the ten recorded test articles, generation reproduces **all 20 of 20** notebook headlines (10 per model). `pytest` repeats this check.
 
-1. Run `notebooks/NLP2.ipynb` to the end.
-2. In a **new cell** run the code in [`scripts/colab_export_snippet.py`](scripts/colab_export_snippet.py). It writes `artifacts/vocab.json`, `rnn_weights.npz` and `lstm_weights.npz` (float16, about 70 MB each, under GitHub's 100 MB limit).
-3. Download the `artifacts/` folder, copy it into this repository, then commit and push.
-
-Details are in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+The notebook does not save its models. To export new weights after retraining, run [`scripts/colab_export_snippet.py`](scripts/colab_export_snippet.py) in a new cell at the end of the notebook (the notebook itself stays unchanged) and replace the files in `artifacts/`. See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 ## Deploy on Streamlit Community Cloud
 

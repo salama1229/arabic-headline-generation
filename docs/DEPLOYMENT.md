@@ -1,8 +1,8 @@
 # Deployment guide
 
-Two steps: export the trained models once, then deploy the app on Streamlit Community Cloud.
+The repository already contains the trained weights in `artifacts/`, so the app can be deployed as is (section 2). Section 1 is only needed if you retrain the models.
 
-## 1. Export the trained models
+## 1. Re-export the models (only after retraining)
 
 `notebooks/NLP2.ipynb` trains the models in memory and does not save them. The notebook is left unchanged; use a separate cell.
 
@@ -55,8 +55,8 @@ Pre-filled form link (replace the user name if needed):
 
 | State | What the app does |
 |---|---|
-| `artifacts/` empty | Runs in **recorded mode**: all pages work, and the Generate tab shows the headlines recorded in the notebook for the ten test articles. |
-| `artifacts/` filled | Runs in **live mode**: paste any Arabic article and both models generate a headline. Models are loaded once and cached. |
+| `artifacts/` missing | Runs in **recorded mode**: all pages work, and the Generate tab shows the headlines recorded in the notebook for the ten test articles. |
+| `artifacts/` present (default) | Runs in **live mode**: paste any Arabic article and both models generate a headline. Models are loaded once and cached. |
 
 ### Troubleshooting
 
