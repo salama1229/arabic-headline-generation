@@ -4,7 +4,7 @@ Generate a headline for an Arabic financial news article with two sequence-to-se
 
 > Course project · Badr University in Assiut · School of Artificial Intelligence & Data Management
 
-![App: generate tab](assets/app_generate.png)
+**Live app:** https://arabic-headline-generation.streamlit.app/
 
 ## Results
 
@@ -17,19 +17,16 @@ Test set of 1,000 unseen articles, greedy decoding (from `notebooks/NLP2.ipynb`)
 
 The LSTM overlaps more with the reference headlines (about +25% BLEU-1, +27% ROUGE-L), but **both models are weak**. Their headlines read like Arabic news but usually do not describe the article: on the ten recorded test articles every LSTM headline opens with either "ارتفاع" or "وكالة: الصين تعتزم". The cause is a small sample (5,000 pairs) against a 92,121-word vocabulary, no attention, and greedy decoding. The full analysis is in [`docs/Project_Report.pdf`](docs/Project_Report.pdf) and the [Challenges section](#challenges-and-limits) below.
 
-![App: results tab](assets/app_results.png)
-
 ## What is in the app
 
 | Tab | Content |
 |---|---|
-| **Generate** | Paste an Arabic article (or pick a test article) and compare both models' headlines with the reference. |
+| **Generate** | Paste any Arabic article and get a headline from each model. |
 | **Results** | BLEU-1 / ROUGE-L, training and validation curves, per-epoch table. |
-| **Examples** | The first ten test articles with reference, SimpleRNN and LSTM headlines. |
 | **How it works** | Pipeline, architecture, training settings, metric definitions. |
 | **Limits** | What the models get wrong and what to try next. |
 
-The trained weights are included in `artifacts/`, so **live generation works out of the box**: paste any Arabic article and both models write a headline. If the weights are ever missing, the app falls back to the headlines recorded in the notebook.
+The trained weights are included in `artifacts/`, so **live generation works out of the box**: paste any Arabic article and both models write a headline.
 
 ## Repository structure
 
@@ -37,15 +34,14 @@ The trained weights are included in `artifacts/`, so **live generation works out
 ├── app.py                      Streamlit app
 ├── src/
 │   ├── preprocessing.py        Arabic cleaning + tokenisation (copied from the notebook)
-│   ├── inference.py            Pure-NumPy SimpleRNN/LSTM encoder-decoder, greedy decoding
-│   └── ui.py                   Theme and HTML helpers
-├── data/                       Results recorded from the notebook (metrics, curves, 10 examples)
+│   └── inference.py            Pure-NumPy SimpleRNN/LSTM encoder-decoder, greedy decoding
+├── data/                       Results recorded from the notebook (metrics, curves, 10 test examples)
 ├── artifacts/                  Trained weights (float16) + vocabulary
 ├── notebooks/NLP2.ipynb        The original, unmodified training notebook
 ├── scripts/                    Export of re-trained models for the app
 ├── tests/                      Checks that the NumPy code matches Keras exactly
 ├── docs/                       Report (PDF/DOCX), notebook guide, deployment guide
-└── .streamlit/config.toml      Theme
+└── .streamlit/config.toml      Server settings
 ```
 
 ## Run locally

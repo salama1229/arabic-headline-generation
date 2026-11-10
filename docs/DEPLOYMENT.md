@@ -55,7 +55,7 @@ Pre-filled form link (replace the user name if needed):
 
 | State | What the app does |
 |---|---|
-| `artifacts/` missing | Runs in **recorded mode**: all pages work, and the Generate tab shows the headlines recorded in the notebook for the ten test articles. |
+| `artifacts/` missing | The Generate tab fails when it loads the models; the other tabs still work. Restore the files in `artifacts/`. |
 | `artifacts/` present (default) | Runs in **live mode**: paste any Arabic article and both models generate a headline. Models are loaded once and cached. |
 
 ### Troubleshooting
